@@ -2,7 +2,6 @@ import SwiftUI
 
 struct CartView: View {
   @EnvironmentObject private var model: NativeStoreModel
-  @State private var showingCheckoutNotice = false
 
   var body: some View {
     List {
@@ -18,13 +17,13 @@ struct CartView: View {
           .onDelete { offsets in
             let items = model.cartItems
             for offset in offsets {
-              model.removeFromCart(items[offset].product)
+              Task { await model.setQuantity(0, for: items[offset].product) }
             }
           }
         } header: {
           Text("Sepetiniz")
         } footer: {
-          Text("Fiyat ve stok bilgileri sipariş aşamasında mağazada doğrulanır.")
+          Text("Bu ara toplam teslimat ücretini içermez. Son fiyat ve stok sipariş aşamasında doğrulanır.")
         }
       }
     }
@@ -36,17 +35,23 @@ struct CartView: View {
     .safeAreaInset(edge: .bottom, spacing: 0) {
       checkoutBar
     }
-    .alert("Sipariş adımı hazır değil", isPresented: $showingCheckoutNotice) {
-      Button("Tamam", role: .cancel) {}
+    .task {
+      await model.refreshCart()
+    }
+    .refreshable {
+      await model.refreshCart()
+    }
+    .alert("Sepet", isPresented: errorBinding) {
+      Button("Tamam", role: .cancel) { model.clearError() }
     } message: {
-      Text("Native sipariş ve ödeme servisleri henüz bu uygulamaya bağlanmadı. Sepetiniz cihazda tutuluyor.")
+      Text(model.errorMessage ?? "")
     }
   }
 
   private var checkoutBar: some View {
     VStack(spacing: 10) {
       HStack {
-        Text("Toplam")
+        Text("Ara toplam")
           .font(.subheadline)
           .foregroundStyle(.secondary)
         Spacer()
@@ -55,9 +60,9 @@ struct CartView: View {
       }
 
       Button {
-        showingCheckoutNotice = true
+        model.storePagePath = "sepet.aspx"
       } label: {
-        Text("Siparişi Tamamla")
+        Text("Teslimat ve ödeme")
           .font(.headline)
           .frame(maxWidth: .infinity)
       }
@@ -71,6 +76,13 @@ struct CartView: View {
     .overlay(alignment: .top) {
       Divider()
     }
+  }
+
+  private var errorBinding: Binding<Bool> {
+    Binding(
+      get: { model.errorMessage != nil },
+      set: { if !$0 { model.clearError() } }
+    )
   }
 }
 
@@ -105,7 +117,7 @@ private struct CartRow: View {
   private var quantityControl: some View {
     HStack(spacing: 12) {
       Button {
-        model.setQuantity(item.quantity - 1, for: item.product)
+        Task { await model.setQuantity(item.quantity - 1, for: item.product) }
       } label: {
         Image(systemName: "minus.circle")
       }
@@ -117,7 +129,7 @@ private struct CartRow: View {
         .accessibilityLabel("Adet \(item.quantity)")
 
       Button {
-        model.setQuantity(item.quantity + 1, for: item.product)
+        Task { await model.setQuantity(item.quantity + 1, for: item.product) }
       } label: {
         Image(systemName: "plus.circle")
       }

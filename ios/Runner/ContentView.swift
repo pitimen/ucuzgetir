@@ -39,5 +39,22 @@ struct ContentView: View {
     }
     .tint(.green)
     .environmentObject(model)
+    .sheet(isPresented: storePageBinding) {
+      NavigationStack {
+        NativeStorePage(path: model.storePagePath ?? "")
+          .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+              Button("Kapat") { model.storePagePath = nil }
+            }
+          }
+      }
+    }
+  }
+
+  private var storePageBinding: Binding<Bool> {
+    Binding(
+      get: { model.storePagePath != nil },
+      set: { if !$0 { model.storePagePath = nil } }
+    )
   }
 }

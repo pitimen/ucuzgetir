@@ -2,9 +2,9 @@
 
 ## iOS
 
-iPhone uygulaması SwiftUI ile oluşturulur; `AppDelegate.swift`, `ContentView.swift` içindeki native arayüzü başlatır. Mağaza, sepet ve hesap ekranları ayrı SwiftUI dosyalarındadır. Uygulamanın iOS akışında WebView kullanılmaz. Ürün kataloğu UcuzGetir HTTPS Merchant akışından native `URLSession`/`XMLParser` ile okunur; arama ve ürün detayları uygulama içinde gösterilir. Favoriler cihazda saklanır, sepet şu an yalnızca uygulama belleğinde tutulur.
+iPhone uygulaması SwiftUI ile oluşturulur; `AppDelegate.swift`, `ContentView.swift` içindeki native arayüzü başlatır. Kategori/ürün kataloğu ve sepet ekranları native SwiftUI'dır. Katalog `NativeCatalog.ashx` üzerinden mobil mağazadaki altı seviyeli kategori ağacı, hesaba özel fiyat/iskonto, “Sepette” fiyatı, kampanya rozetleri ve stok durumlarıyla yüklenir; giriş ve sepet mevcut session tabanlı ASP.NET handler'larını kullanır. Teslimat, kayıt, hesap yönetimi ve 3D Secure adımları mevcut ASP.NET akışında `WKWebView` ile sunulur; native oturum çerezleri bu ekrana aktarılır. Favoriler cihazda saklanır.
 
-Bu native iskelette hesap açma/girişi, hesap silme talebi, sunucuya senkronize sepet, sipariş ve ödeme servisleri henüz bağlı değildir. Bu ekranlardaki işlemler tamamlanmadan uygulama App Store incelemesine hazır kabul edilmemelidir. Yardım ve politika bağlantıları varsayılan iOS tarayıcısında açılır.
+Giriş ve sunucu sepeti bağlanmıştır. Katalog için backend'deki `NativeCatalog.ashx` ve güncel `SepetIslem.ashx` değişiklikleri sunucuya alınmalıdır; ürünler 100'lük sayfalarla yüklenir. Kayıt, hesap silme, teslimat ve sipariş adımları mevcut mağaza web akışlarıyla tamamlanır; bu işlemler için ayrı JSON API henüz yoktur. App Store gönderiminden önce gerçek iPhone'da oturum, misafir/üye sepeti, kategori gezinmesi, teslimat ve 3D Secure akışını uçtan uca doğrulayın.
 
 ## Geliştirme
 
@@ -25,8 +25,8 @@ Bu native iskelette hesap açma/girişi, hesap silme talebi, sunucuya senkronize
 ## App Store gönderim kontrolü
 
 - Bu native iskelet kamera veya barkod taraması istemez.
-- Favoriler yalnızca cihazda saklanır. Sepet, uygulama kapatılana kadar bellekte tutulur.
-- Hesap, silme, sipariş ve ödeme servisleri bağlanıp gerçek cihazda uçtan uca test edilmeden build'i incelemeye göndermeyin.
+- Favoriler yalnızca cihazda saklanır; sepet mağaza oturumunda saklanır.
+- Kayıt, hesap silme, sipariş ve ödeme web akışlarını gerçek cihazda uçtan uca test etmeden build'i incelemeye göndermeyin.
 - Canlı Merchant akışının kontrol edilen ürün kayıtları `ResimKucult.ashx` üzerinden JPEG görsel URL'leri ve fiyat verileri döndürüyor. Yayın öncesinde tam katalogdaki görsel, fiyat ve stok bilgisini yeniden doğrulayın.
 - Gizlilik politikası: `https://www.ucuzgetir.com/gizlilik-politikasi.aspx`.
 - App Store Connect’te veri toplama/gizlilik beyanını uygulamanın gerçek davranışıyla eşleştirin ve mağaza ekran görüntülerini hazırlayın.
